@@ -1,0 +1,299 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  /* let Dashboard.css / body set page background (white) and text color */
+}
+
+.sidebar {
+  /* fixed width to make collapse behavior predictable */
+  width: 260px;
+  background: rgb(3, 136, 180);
+  color: #ffffff;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  transition: width 250ms ease, background 250ms ease;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  border-bottom-right-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar-header {
+  margin-bottom: 1rem;
+}
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sidebar-user {
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.user-avatar img,
+.avatar-preview img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* Profile modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: #fff;
+  color: #111;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  width: 400px;
+  max-width: calc(100% - 32px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.profile-form .profile-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profile-form .avatar-preview img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+}
+
+.profile-form .file-label input[type="file"] {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.profile-form .form-group {
+  margin-bottom: 0.6rem;
+}
+
+.profile-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: #fff;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  border: 0;
+}
+
+.btn-secondary {
+  background: #eee;
+  color: #222;
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  border: 0;
+}
+
+.sidebar-nav {
+  margin-top: 1.25rem;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-list li {
+  margin: 0.25rem 0;
+}
+
+.menu-list a {
+  color: #e6f7ff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 6px;
+}
+
+.menu-list a .icon {
+  /* use inline-flex so we can perfectly center the icon glyph */
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.6rem;
+}
+
+.menu-list a .label {
+  vertical-align: middle;
+}
+
+.menu-list a:hover {
+  background: rgba(4, 76, 200);
+}
+
+/* Active state styling (match hover) */
+.menu-link.active,
+.menu-link.active .label {
+  /* give the same background as hover */
+  background: rgba(4, 76, 200);
+}
+.menu-link.active {
+  border-radius: 6px;
+}
+
+/* When collapsed, ensure active icon is centered and visible */
+.sidebar.collapsed .menu-link.active {
+  justify-content: center;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.logout-btn {
+  background: #e70f0f;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.main-content {
+  /* main content should fill remaining space and use white background / black text */
+  flex: 1 1 auto;
+  padding: 1.25rem;
+  transition: margin-left 250ms ease, width 250ms ease;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #000000;
+  min-height: 100vh;
+}
+
+/* when sidebar collapsed, main has more room - layout handled by flex */
+
+/* Hide labels and user info when collapsed so only icons remain visible */
+.sidebar.collapsed .label,
+.sidebar.collapsed .sidebar-user,
+.sidebar.collapsed .brand-text {
+  display: none;
+}
+
+/* .sidebar.collapsed .brand-short {
+  display: inline-block;
+}
+
+.brand-short {
+  display: none;
+  font-weight: 800;
+  margin-right: 0.5rem;
+} */
+
+/* Adjust link padding when collapsed */
+.sidebar.collapsed .menu-list a {
+  /* remove horizontal padding so icon can be perfectly centered */
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+}
+.sidebar.collapsed .menu-list a .icon {
+  margin-right: 0;
+}
+
+/* Slight visual nudge for perfect center on some fonts/browsers */
+.sidebar.collapsed .menu-list a .icon i {
+  transform: translateX(0.5px);
+}
+.sidebar-footer .logout-btn,
+.sidebar-footer a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sidebar.collapsed .sidebar-footer .label {
+  display: none;
+}
+.sidebar.collapsed .sidebar-footer .icon {
+  margin: 0;
+}
+
+/* Small screens: sidebar becomes collapsible overlay */
+@media (max-width: 800px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    transform: translateX(-100%);
+    z-index: 30;
+  }
+  .sidebar.collapsed {
+    transform: translateX(0);
+    width: 260px;
+  }
+  .app-layout {
+    padding-left: 0;
+  }
+  .main-content {
+    width: 100%;
+  }
+}
