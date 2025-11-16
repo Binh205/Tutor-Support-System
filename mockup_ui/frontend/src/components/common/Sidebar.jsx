@@ -151,7 +151,7 @@ export default function Sidebar() {
               </NavLink>
             </li>
 
-            <li>
+            {/* <li>
               <NavLink
                 to="/tutor-dashboard/theo-doi-tien-do"
                 className={({ isActive }) =>
@@ -163,6 +163,17 @@ export default function Sidebar() {
                   aria-hidden="true"
                 ></i>
                 <span className="label">Theo dõi tiến độ</span>
+              </NavLink>
+            </li> */}
+            <li>
+              <NavLink
+                to="/tutor-dashboard/view-feedback"
+                className={({ isActive }) =>
+                  "menu-link" + (isActive ? " active" : "")
+                }
+              >
+                <i className="fa-solid fa-comments icon" aria-hidden="true"></i>
+                <span className="label">Xem Feedback</span>
               </NavLink>
             </li>
           </ul>

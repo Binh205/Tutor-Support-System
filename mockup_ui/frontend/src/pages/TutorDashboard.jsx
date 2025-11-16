@@ -3,6 +3,7 @@ import Sidebar from "../components/common/Sidebar";
 import QuanLyBuoiHoc from "../components/tutor/quanlyBuoiHoc";
 import TaoLichHoc from "../components/tutor/taoLichHoc";
 import TheoDoiTienDo from "../components/tutor/theodoiTienDo";
+import ViewFeedback from "../components/tutor/ViewFeedback";
 import "../styles/App.css";
 import "../styles/Dashboard.css";
 
@@ -20,7 +21,8 @@ export default function TutorDashboard() {
           />
           <Route path="quan-ly-buoi-hoc" element={<QuanLyBuoiHoc />} />
           <Route path="tao-lich-hoc" element={<TaoLichHoc />} />
-          <Route path="theo-doi-tien-do" element={<TheoDoiTienDo />} />
+          {/* <Route path="theo-doi-tien-do" element={<TheoDoiTienDo />} /> */}
+          <Route path="view-feedback" element={<ViewFeedback />} />
           <Route
             path="*"
             element={

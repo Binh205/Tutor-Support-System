@@ -1062,6 +1062,112 @@ function closePoll(poll_id, selected_option_id, rescheduled_session_id) {
   });
 }
 
+// ===== Feedback helpers =====
+
+function createFeedback({ session_id, student_id, class_id, tutor_id, rating, comment, is_anonymous }) {
+  return new Promise((resolve, reject) => {
+    const stmt = `INSERT INTO session_feedbacks (session_id, student_id, class_id, tutor_id, rating, comment, is_anonymous)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.run(
+      stmt,
+      [session_id, student_id, class_id, tutor_id, rating, comment || '', is_anonymous ? 1 : 0],
+      function (err) {
+        if (err) return reject(err);
+        db.get('SELECT * FROM session_feedbacks WHERE id = ?', [this.lastID], (e, row) => {
+          if (e) return reject(e);
+          resolve(row);
+        });
+      }
+    );
+  });
+}
+
+function getFeedbacksByTutor(tutor_id, semester_id, class_id) {
+  return new Promise((resolve, reject) => {
+    let query = `
+      SELECT sf.*,
+             s.start_time as session_date,
+             u.name as student_name,
+             sub.code as subject_code,
+             sub.name as subject_name,
+             c.id as class_id
+      FROM session_feedbacks sf
+      JOIN sessions s ON sf.session_id = s.id
+      JOIN users u ON sf.student_id = u.id
+      JOIN classes c ON sf.class_id = c.id
+      JOIN subjects sub ON c.subject_id = sub.id
+      WHERE sf.tutor_id = ?
+    `;
+
+    const params = [tutor_id];
+
+    if (semester_id) {
+      query += ' AND c.semester_id = ?';
+      params.push(semester_id);
+    }
+
+    if (class_id) {
+      query += ' AND sf.class_id = ?';
+      params.push(class_id);
+    }
+
+    query += ' ORDER BY sf.created_at DESC';
+
+    db.all(query, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows || []);
+    });
+  });
+}
+
+function getCompletedSessionsWithoutFeedback(class_id, student_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT s.*, sub.code as subject_code, sub.name as subject_name
+       FROM sessions s
+       JOIN classes c ON s.class_id = c.id
+       JOIN subjects sub ON c.subject_id = sub.id
+       WHERE s.class_id = ?
+         AND s.status = 'completed'
+         AND s.id NOT IN (
+           SELECT session_id FROM session_feedbacks WHERE student_id = ?
+         )
+       ORDER BY s.start_time DESC`,
+      [class_id, student_id],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows || []);
+      }
+    );
+  });
+}
+
+function getCurrentClassesByStudent(student_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT c.*,
+              sub.code as subject_code,
+              sub.name as subject_name,
+              u.name as tutor_name,
+              sem.code as semester_code,
+              sem.name as semester_name
+       FROM classes c
+       JOIN subjects sub ON c.subject_id = sub.id
+       JOIN users u ON c.tutor_id = u.id
+       JOIN semesters sem ON c.semester_id = sem.id
+       JOIN class_registrations cr ON c.id = cr.class_id
+       WHERE cr.student_id = ?
+         AND date('now') BETWEEN date(sem.start_date) AND date(sem.end_date)
+       ORDER BY sub.code`,
+      [student_id],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows || []);
+      }
+    );
+  });
+}
+
 module.exports = {
   db,
   getUserByUsername,
@@ -1115,4 +1221,9 @@ module.exports = {
   voteOnPoll,
   getPollVotes,
   closePoll,
+  // feedbacks
+  createFeedback,
+  getFeedbacksByTutor,
+  getCompletedSessionsWithoutFeedback,
+  getCurrentClassesByStudent,
 };

@@ -15,6 +15,7 @@ const sessionRoutes = require("./routes/sessions");
 const usersRoutes = require("./routes/users");
 const schedulesRoutes = require("./routes/schedules");
 const studentRoutes = require("./routes/students");
+const feedbackRoutes = require("./routes/feedbacks");
 const path = require("path");
 
 // Serve images (avatars) as static
@@ -25,6 +26,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/tutor", schedulesRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/feedbacks", feedbackRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
