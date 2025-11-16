@@ -253,6 +253,8 @@ form {
   outline: none;
   border-color: #4caf50;
   box-shadow: 0 0 6px rgba(76, 175, 80, 0.25);
+  background-color: #ffffff;
+  color: #333;
 }
 
 .formGroup textarea {
@@ -314,19 +316,6 @@ form {
   width: auto;
   cursor: pointer;
 }
-
-/*format checkbox before checked with the background-color: #ffffff*/
-
-/* /* Checked checkbox styling
-.daysCheckbox input:checked + label {
-  background-color: #28a745;
-  color: #fff;
-  border-color: #218838;
-}
-
-.daysCheckbox input:checked {
-  accent-color: #fff; 
-} */
 
 .timeRow {
   display: grid;

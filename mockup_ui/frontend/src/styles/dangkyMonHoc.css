@@ -80,7 +80,7 @@
 
 /* Current Semester Banner */
 .current-semester-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: rgb(3, 136, 180);
   color: white;
   padding: 1.5rem 2rem;
   border-radius: 0.75rem;

@@ -20,6 +20,8 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s;
+  background-color: white;
+  color: #333;
 }
 
 .form-input:focus,
