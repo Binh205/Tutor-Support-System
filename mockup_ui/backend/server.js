@@ -12,9 +12,19 @@ app.use(express.json());
 // Routes
 const authRoutes = require("./routes/auth");
 const sessionRoutes = require("./routes/sessions");
+const usersRoutes = require("./routes/users");
+const schedulesRoutes = require("./routes/schedules");
+const studentRoutes = require("./routes/students");
+const path = require("path");
+
+// Serve images (avatars) as static
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/tutor", schedulesRoutes);
+app.use("/api/student", studentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

@@ -1,0 +1,178 @@
+.calendar-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.calendar-header h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.today-btn {
+  padding: 8px 16px;
+  border: 1px solid #2196f3;
+  background: white;
+  color: #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.today-btn:hover {
+  background: #2196f3;
+  color: white;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  padding: 12px;
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.calendar-day {
+  min-height: 120px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  border-color: #2196f3;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.calendar-day.empty-day {
+  background: #fafafa;
+  border-color: transparent;
+}
+
+.calendar-day.today {
+  border: 2px solid #2196f3;
+  background: #e3f2fd;
+}
+
+.day-number {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.calendar-day.today .day-number {
+  color: #2196f3;
+}
+
+.day-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  font-size: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.session-item:hover {
+  opacity: 0.9;
+  transform: translateX(2px);
+}
+
+.session-time {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.session-title {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-cancelled-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 16px;
+  }
+
+  .calendar-header h2 {
+    font-size: 18px;
+  }
+
+  .calendar-day {
+    min-height: 80px;
+    padding: 4px;
+  }
+
+  .session-item {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+
+  .session-time {
+    font-size: 10px;
+  }
+
+  .session-title {
+    font-size: 9px;
+  }
+}

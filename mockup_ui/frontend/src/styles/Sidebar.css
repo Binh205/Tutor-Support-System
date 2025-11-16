@@ -116,12 +116,54 @@
 }
 
 .profile-form .file-label input[type="file"] {
-  display: block;
-  margin-top: 0.5rem;
+  /* hide original input but keep it accessible via label click */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .profile-form .form-group {
   margin-bottom: 0.6rem;
+}
+
+/* Standardize inputs in profile modal (match read-only look for name/email/faculty)
+   and ensure phone/address use the same style */
+.profile-form input[type="text"],
+.profile-form input[type="tel"],
+.profile-form input[type="email"],
+.profile-form input:not([type="file"]) {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  color: #111;
+  box-shadow: none;
+}
+
+.profile-form .file-label {
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+  position: relative;
+  padding: 0.25rem 0.35rem;
+}
+
+.profile-form .file-button {
+  background: #333;
+  color: #fff;
+  padding: 0.45rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.profile-form .file-name {
+  color: #444;
+  font-size: 0.9rem;
 }
 
 .profile-form .form-actions {

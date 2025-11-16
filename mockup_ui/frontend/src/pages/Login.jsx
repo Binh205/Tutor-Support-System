@@ -2,6 +2,7 @@ import HCMUTLogo from "../assets/HCMUT_logo.png";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
+import normalizeUser from "../services/userUtils";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   // 🔧 FIX: Detect và sync autofill values
+  // Ignore exhaustive-deps for autofill sync (reads DOM inputs directly)
   useEffect(() => {
     const timer = setTimeout(() => {
       const usernameInput = document.getElementById("username");
@@ -26,7 +28,7 @@ export default function Login() {
     }, 100); // Delay 100ms để browser autofill hoàn tất
 
     return () => clearTimeout(timer);
-  }, []); 
+  }, [username, password]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -42,7 +44,6 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       // Validate inputs
       if (!username || !password) {
@@ -51,35 +52,45 @@ export default function Login() {
         return;
       }
 
-      // Check credentials
-      const account = VALID_ACCOUNTS[username];
-      if (!account || account.password !== password) {
-        setError("Invalid username or password");
+      // Build payload: if user typed an email use email, otherwise send username
+      const trimmed = username.trim();
+      const payload = trimmed.includes("@")
+        ? { email: trimmed, password }
+        : { username: trimmed, password };
+
+      // Call backend API
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        const msg = data?.error || data?.message || "Login failed";
+        setError(msg);
         setLoading(false);
         return;
       }
 
-      // Create user object
-      const user = {
-        id: username === "student" ? 1 : 2,
-        username: username,
-        role: account.role,
-        name: account.name,
-        avatar: username === "student" ? "S" : "T",
-      };
-
-      // Save to localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // Redirect based on role
-      if (account.role === "student") {
-        navigate("/student-dashboard");
-      } else if (account.role === "tutor") {
-        navigate("/tutor-dashboard");
+      // success: store token and user
+      if (data.token) {
+        localStorage.setItem("token", data.token);
       }
+      if (data.user) {
+        // Normalize user so frontend can use `user.avatar` (absolute URL)
+        const normalized = normalizeUser(data.user);
+        localStorage.setItem("user", JSON.stringify(normalized));
+      }
+
+      // Redirect based on role (fallback to student-dashboard)
+      const role =
+        data.user?.role || (username === "tutor" ? "tutor" : "student");
+      if (role === "tutor") navigate("/tutor-dashboard");
+      else navigate("/student-dashboard");
     } catch (err) {
-      setError("An error occurred");
       console.error(err);
+      setError("Network or server error");
     } finally {
       setLoading(false);
     }

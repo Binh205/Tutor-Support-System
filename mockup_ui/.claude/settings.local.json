@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e:*)",
+      "Bash(sqlite3:*)",
+      "Bash(node migrateClasses.js:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)",
+      "Bash(timeout 3 bash:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

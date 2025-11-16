@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import "../../styles/App.css";
 import "../../styles/Sidebar.css";
 import ThongTinCaNhan from "./thongtinCaNhan";
+import normalizeUser from "../../services/userUtils";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -13,7 +14,14 @@ export default function Sidebar() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem("user");
-      if (raw) setUser(JSON.parse(raw));
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          setUser(normalizeUser(parsed));
+        } catch {
+          setUser(null);
+        }
+      }
     } catch {
       setUser(null);
     }

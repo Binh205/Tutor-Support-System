@@ -1,40 +1,46 @@
-const { getUser } = require("../mockDB");
+const { getUserByEmail, getUserByUsername } = require("../db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// Login controller
-const login = (req, res) => {
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
+
+// POST /api/auth/login
+// Expecting { email, password } from frontend. Some clients may send { username, password }
+// so support both by mapping username -> email if needed at the client side.
+const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+    if ((!email && !username) || !password)
+      return res
+        .status(400)
+        .json({ error: "Email/username and password required" });
+
+    // Allow login by username OR email
+    let user = null;
+    if (username) {
+      user = await getUserByUsername(username);
+    } else if (email) {
+      user = await getUserByEmail(email);
     }
 
-    // Find user
-    const user = getUser(email);
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    if (!user) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Check password (simple check - no hashing for mock)
-    if (user.password !== password) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
+    const { password_hash, ...userWithoutPassword } = user;
 
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({
-      success: true,
-      message: "Login successful",
-      user: userWithoutPassword,
+    // Create JWT
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
     });
-  } catch (error) {
-    console.error("Login error:", error);
+
+    res.json({ success: true, token, user: userWithoutPassword });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Login failed" });
   }
 };
 
-module.exports = {
-  login,
-};
+module.exports = { login };
