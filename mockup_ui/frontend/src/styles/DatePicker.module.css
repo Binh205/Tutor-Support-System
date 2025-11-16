@@ -1,0 +1,200 @@
+.datePickerContainer {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.required {
+  color: #f44336;
+}
+
+.datePickerWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Input wrapper - chứa input và icon */
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  padding: 10px 12px;
+  padding-right: 40px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inputWrapper:hover {
+  border-color: #2196f3;
+}
+
+/* Display value - hiển thị ngày */
+.displayValue {
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+/* Calendar icon */
+.calendarIcon {
+  width: 20px;
+  height: 20px;
+  color: #2196f3;
+  transition: color 0.2s;
+}
+
+.inputWrapper:hover .calendarIcon {
+  color: #1976d2;
+}
+
+/* ============================================ */
+/* PHẦN CSS CHO CALENDAR DROPDOWN - BẮT ĐẦU TỪ ĐÂY */
+/* ============================================ */
+
+/* Khung chính chứa toàn bộ calendar dropdown */
+.calendarDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 300px;
+  background-color: white;
+  border: 2px solid #2196f3; /* BORDER CHO CALENDAR DROPDOWN */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header của calendar - chứa nút prev/next và tháng/năm */
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Nút prev/next tháng */
+.navButton {
+  background: none;
+  border: 1px solid #e0e0e0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.navButton:hover {
+  background-color: #f5f5f5;
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+/* Hiển thị tháng và năm */
+.monthYear {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Hàng chứa tên các ngày trong tuần */
+.weekDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  padding: 8px 0;
+}
+
+/* Grid chứa các ngày trong tháng */
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+/* Cell cho mỗi ngày */
+.dayCell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+/* Ngày rỗng (không thuộc tháng hiện tại) */
+.dayEmpty {
+  cursor: default;
+}
+
+/* Ngày có thể click */
+.dayActive {
+  cursor: pointer;
+  color: #333;
+}
+
+.dayActive:hover {
+  background-color: #e3f2fd;
+  color: #2196f3;
+}
+
+/* Ngày hôm nay */
+.dayToday {
+  border: 1px solid #2196f3;
+  font-weight: 600;
+}
+
+/* Ngày đã chọn */
+.daySelected {
+  background-color: #2196f3;
+  color: white !important;
+  font-weight: 600;
+}
+
+.daySelected:hover {
+  background-color: #1976d2;
+}
+
+/* ============================================ */
+/* PHẦN CSS CHO CALENDAR DROPDOWN - KẾT THÚC */
+/* ============================================ */

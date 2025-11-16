@@ -17,7 +17,7 @@ export default function QuanLyLichHoc() {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
-      fetchSessions(user.id, new Date());
+      fetchSessions(user.id, currentDate);
     }
   }, []);
 
@@ -56,6 +56,13 @@ export default function QuanLyLichHoc() {
     setSelectedSession(null);
   };
 
+  const handleMonthChange = (newDate) => {
+    setCurrentDate(newDate);
+    if (currentUser) {
+      fetchSessions(currentUser.id, newDate);
+    }
+  };
+
   if (loading && sessions.length === 0) {
     return (
       <div className="quanly-lichhoc-container">
@@ -92,7 +99,8 @@ export default function QuanLyLichHoc() {
       <Calendar
         sessions={sessions}
         onSessionClick={handleSessionClick}
-        currentUser={currentUser}
+        currentDate={currentDate}
+        onMonthChange={handleMonthChange}
       />
 
       <SessionDetailDialog

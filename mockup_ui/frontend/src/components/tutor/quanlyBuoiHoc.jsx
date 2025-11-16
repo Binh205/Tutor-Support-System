@@ -17,7 +17,7 @@ export default function QuanLyBuoiHoc() {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
-      fetchSessions(user.id, new Date());
+      fetchSessions(user.id, currentDate);
     }
   }, []);
 
@@ -114,6 +114,70 @@ export default function QuanLyBuoiHoc() {
     }
   };
 
+  const handleMonthChange = (newDate) => {
+    setCurrentDate(newDate);
+    if (currentUser) {
+      fetchSessions(currentUser.id, newDate);
+    }
+  };
+
+  const handleRescheduleSubmit = async (sessionId, rescheduleData) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/sessions/${sessionId}/reschedule`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(rescheduleData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Không thể đổi lịch buổi học");
+      }
+
+      // Refresh sessions after rescheduling
+      if (currentUser) {
+        await fetchSessions(currentUser.id, currentDate);
+      }
+
+      alert("Đã đổi lịch buổi học thành công! Sinh viên sẽ được thông báo.");
+    } catch (err) {
+      console.error("Error rescheduling session:", err);
+      throw err;
+    }
+  };
+
+  const handleCompleteSession = async (sessionId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/sessions/${sessionId}/complete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Không thể đánh dấu hoàn thành buổi học");
+      }
+
+      // Refresh sessions after completing
+      if (currentUser) {
+        await fetchSessions(currentUser.id, currentDate);
+      }
+
+      alert("Đã đánh dấu buổi học hoàn thành!");
+    } catch (err) {
+      console.error("Error completing session:", err);
+      throw err;
+    }
+  };
+
   if (loading && sessions.length === 0) {
     return (
       <div className="quanly-buoihoc-container">
@@ -153,9 +217,9 @@ export default function QuanLyBuoiHoc() {
       <div className="stats-section">
         <div className="stat-card">
           <div className="stat-number">
-            {sessions.filter((s) => s.status === "scheduled").length}
+            {sessions.filter((s) => s.status === "scheduled" || s.status === "rescheduled").length}
           </div>
-          <div className="stat-label">Buổi học sắp tới</div>
+          <div className="stat-label">Buổi học còn lại</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">
@@ -174,7 +238,8 @@ export default function QuanLyBuoiHoc() {
       <Calendar
         sessions={sessions}
         onSessionClick={handleSessionClick}
-        currentUser={currentUser}
+        currentDate={currentDate}
+        onMonthChange={handleMonthChange}
       />
 
       <EditSessionDialog
@@ -183,6 +248,8 @@ export default function QuanLyBuoiHoc() {
         onClose={handleCloseDialog}
         onSave={handleSaveSession}
         onCancel={handleCancelSession}
+        onReschedule={handleRescheduleSubmit}
+        onComplete={handleCompleteSession}
       />
     </div>
   );

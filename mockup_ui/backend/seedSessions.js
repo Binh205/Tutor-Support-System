@@ -32,75 +32,52 @@ async function seedSessions() {
     const sessionsData = [];
 
     for (const classData of classes) {
-      // Create 8 sessions for each class (2 per week for 4 weeks in November)
-      const sessions = [
-        {
-          class_id: classData.id,
-          session_number: 1,
-          start_time: "2025-11-04 08:00:00",
-          end_time: "2025-11-04 10:00:00",
-          location: "Phòng A101",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 2,
-          start_time: "2025-11-06 08:00:00",
-          end_time: "2025-11-06 10:00:00",
-          location: "Phòng A101",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 3,
-          start_time: "2025-11-11 08:00:00",
-          end_time: "2025-11-11 10:00:00",
-          location: "Phòng A102",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 4,
-          start_time: "2025-11-13 08:00:00",
-          end_time: "2025-11-13 10:00:00",
-          location: "Phòng A102",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 5,
-          start_time: "2025-11-18 08:00:00",
-          end_time: "2025-11-18 10:00:00",
-          location: "Phòng B201",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 6,
-          start_time: "2025-11-20 08:00:00",
-          end_time: "2025-11-20 10:00:00",
-          location: "Phòng B201",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 7,
-          start_time: "2025-11-25 08:00:00",
-          end_time: "2025-11-25 10:00:00",
-          location: "Phòng C301",
-          status: "scheduled",
-        },
-        {
-          class_id: classData.id,
-          session_number: 8,
-          start_time: "2025-11-27 08:00:00",
-          end_time: "2025-11-27 10:00:00",
-          location: "Phòng C301",
-          status: "scheduled",
-        },
-      ];
+      // Get recurring schedules for this class
+      const schedules = await new Promise((resolve, reject) => {
+        db.all(
+          "SELECT * FROM recurring_schedules WHERE class_id = ?",
+          [classData.id],
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          }
+        );
+      });
 
-      sessionsData.push(...sessions);
+      if (schedules.length === 0) {
+        console.log(`No schedules found for class ${classData.id}, skipping...`);
+        continue;
+      }
+
+      // November 2025 dates by day of week (0=Sunday, 1=Monday, etc.)
+      const novemberDates = {
+        0: [2, 9, 16, 23, 30], // Sunday
+        1: [3, 10, 17, 24],    // Monday
+        2: [4, 11, 18, 25],    // Tuesday
+        3: [5, 12, 19, 26],    // Wednesday
+        4: [6, 13, 20, 27],    // Thursday
+        5: [7, 14, 21, 28],    // Friday
+        6: [1, 8, 15, 22, 29], // Saturday
+      };
+
+      let sessionNumber = 1;
+
+      for (const schedule of schedules) {
+        const dates = novemberDates[schedule.day_of_week] || [];
+
+        for (const day of dates) {
+          const dateStr = `2025-11-${String(day).padStart(2, "0")}`;
+
+          sessionsData.push({
+            class_id: classData.id,
+            session_number: sessionNumber++,
+            start_time: `${dateStr} ${schedule.start_time}:00`,
+            end_time: `${dateStr} ${schedule.end_time}:00`,
+            location: "Phòng A101",
+            status: "scheduled",
+          });
+        }
+      }
     }
 
     // Insert all sessions

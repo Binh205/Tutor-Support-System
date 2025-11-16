@@ -1,72 +1,79 @@
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./data.sqlite');
+const { db } = require("./db");
 
-console.log('Starting sessions table migration...');
+async function migrateSessions() {
+  try {
+    console.log("Starting migration: Adding location_type and location_details columns...");
 
-db.serialize(() => {
-  // Drop the old sessions table
-  db.run('DROP TABLE IF EXISTS sessions', (err) => {
-    if (err) {
-      console.error('Error dropping sessions table:', err);
-      return;
-    }
-    console.log('✓ Old sessions table dropped');
-  });
+    // Add location_type column
+    await new Promise((resolve, reject) => {
+      db.run(
+        `ALTER TABLE sessions ADD COLUMN location_type TEXT DEFAULT 'offline'`,
+        (err) => {
+          if (err) {
+            if (err.message.includes("duplicate column name")) {
+              console.log("⚠️  Column location_type already exists, skipping...");
+              resolve();
+            } else {
+              reject(err);
+            }
+          } else {
+            console.log("✅ Added column: location_type");
+            resolve();
+          }
+        }
+      );
+    });
 
-  // Create new sessions table with correct schema
-  db.run(`
-    CREATE TABLE sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      class_id INTEGER NOT NULL,
-      session_number INTEGER NOT NULL,
-      start_time DATETIME NOT NULL,
-      end_time DATETIME NOT NULL,
-      location TEXT,
-      status TEXT DEFAULT 'scheduled',
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE
-    )
-  `, (err) => {
-    if (err) {
-      console.error('Error creating sessions table:', err);
-      return;
-    }
-    console.log('✓ New sessions table created');
-  });
+    // Add location_details column
+    await new Promise((resolve, reject) => {
+      db.run(
+        `ALTER TABLE sessions ADD COLUMN location_details TEXT`,
+        (err) => {
+          if (err) {
+            if (err.message.includes("duplicate column name")) {
+              console.log("⚠️  Column location_details already exists, skipping...");
+              resolve();
+            } else {
+              reject(err);
+            }
+          } else {
+            console.log("✅ Added column: location_details");
+            resolve();
+          }
+        }
+      );
+    });
 
-  // Drop and recreate session_attendance table if needed
-  db.run('DROP TABLE IF EXISTS session_attendance', (err) => {
-    if (err) {
-      console.error('Error dropping session_attendance table:', err);
-      return;
-    }
-    console.log('✓ Old session_attendance table dropped');
-  });
+    // Migrate existing location data to location_details
+    await new Promise((resolve, reject) => {
+      db.run(
+        `UPDATE sessions SET location_details = location WHERE location_details IS NULL`,
+        (err) => {
+          if (err) reject(err);
+          else {
+            console.log("✅ Migrated existing location data to location_details");
+            resolve();
+          }
+        }
+      );
+    });
 
-  db.run(`
-    CREATE TABLE session_attendance (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id INTEGER NOT NULL,
-      student_id INTEGER NOT NULL,
-      status TEXT DEFAULT 'registered',
-      attended BOOLEAN DEFAULT 0,
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE,
-      FOREIGN KEY(student_id) REFERENCES users(id),
-      UNIQUE(session_id, student_id)
-    )
-  `, (err) => {
-    if (err) {
-      console.error('Error creating session_attendance table:', err);
-      db.close();
-      return;
-    }
-    console.log('✓ New session_attendance table created');
-    console.log('\n✅ Migration completed successfully!');
-    db.close();
-  });
+    console.log("\n✅ Migration completed successfully!");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Migration failed:", err);
+    process.exit(1);
+  }
+}
+
+migrateSessions();
+// Add this to run cancellation_reason migration
+const { db: db2 } = require("./db");
+db2.run('ALTER TABLE sessions ADD COLUMN cancellation_reason TEXT', (err) => { 
+  if (err && !err.message.includes('duplicate')) {
+    console.error(err);
+  } else {
+    console.log('✅ Added cancellation_reason column'); 
+  }
+  db2.close();
 });

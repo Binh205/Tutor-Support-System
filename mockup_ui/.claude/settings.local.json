@@ -8,7 +8,12 @@
       "Bash(node:*)",
       "Bash(timeout 3 bash:*)",
       "Bash(taskkill:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(netstat:*)",
+      "Bash(npm start)",
+      "Bash(findstr:*)",
+      "Bash(cmd //c taskkill //PID 6512 //F)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

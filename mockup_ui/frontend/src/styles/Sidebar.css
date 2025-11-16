@@ -1,12 +1,17 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
-  /* let Dashboard.css / body set page background (white) and text color */
+  background: #ffffff;
 }
 
 .sidebar {
-  /* fixed width to make collapse behavior predictable */
+  /* Fixed positioning to stay in viewport */
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 260px;
+  height: 100vh;
   background: rgb(3, 136, 180);
   color: #ffffff;
   padding: 1.25rem;
@@ -18,6 +23,9 @@
   align-items: center;
   border-bottom-right-radius: 12px;
   border-top-right-radius: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100;
 }
 
 .sidebar.collapsed {
@@ -26,6 +34,7 @@
 
 .sidebar-header {
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .sidebar-top {
@@ -191,6 +200,9 @@
 
 .sidebar-nav {
   margin-top: 1.25rem;
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .menu-list {
@@ -248,6 +260,12 @@
 
 .sidebar-footer {
   margin-top: auto;
+  flex-shrink: 0;
+  padding-top: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .logout-btn {
@@ -257,20 +275,29 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  width: auto;
+}
+
+.sidebar.collapsed .logout-btn {
+  width: auto;
 }
 
 .main-content {
-  /* main content should fill remaining space and use white background / black text */
+  /* Add margin-left to account for fixed sidebar */
+  margin-left: 260px;
   flex: 1 1 auto;
   padding: 1.25rem;
-  transition: margin-left 250ms ease, width 250ms ease;
+  transition: margin-left 250ms ease;
   box-sizing: border-box;
   background: #ffffff;
   color: #000000;
   min-height: 100vh;
 }
 
-/* when sidebar collapsed, main has more room - layout handled by flex */
+/* When sidebar collapsed, reduce main content margin */
+.sidebar.collapsed ~ .main-content {
+  margin-left: 80px;
+}
 
 /* Hide labels and user info when collapsed so only icons remain visible */
 .sidebar.collapsed .label,
@@ -278,16 +305,6 @@
 .sidebar.collapsed .brand-text {
   display: none;
 }
-
-/* .sidebar.collapsed .brand-short {
-  display: inline-block;
-}
-
-.brand-short {
-  display: none;
-  font-weight: 800;
-  margin-right: 0.5rem;
-} */
 
 /* Adjust link padding when collapsed */
 .sidebar.collapsed .menu-list a {
@@ -317,6 +334,25 @@
   margin: 0;
 }
 
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Small screens: sidebar becomes collapsible overlay */
 @media (max-width: 800px) {
   .sidebar {
@@ -336,6 +372,7 @@
     padding-left: 0;
   }
   .main-content {
+    margin-left: 0;
     width: 100%;
   }
 }

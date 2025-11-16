@@ -1,0 +1,62 @@
+import { useState, useEffect, useRef } from "react";
+import styles from "../../styles/DatePicker.module.css";
+
+/**
+ * DatePicker component that displays date in dd/mm/yyyy format
+ * @param {Object} props
+ * @param {string} props.value - Date value in YYYY-MM-DD format
+ * @param {Function} props.onChange - Callback function when date changes
+ * @param {string} props.label - Label text for the date picker
+ * @param {boolean} props.required - Whether the field is required
+ */
+export default function DatePicker({
+  value = "",
+  onChange,
+  label,
+  required = false,
+}) {
+  const [displayValue, setDisplayValue] = useState("");
+  const inputRef = useRef(null);
+
+  // Convert YYYY-MM-DD to dd/mm/yyyy for display
+  useEffect(() => {
+    if (value) {
+      const date = new Date(value + "T00:00:00");
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      setDisplayValue(`${day}/${month}/${year}`);
+    } else {
+      setDisplayValue("");
+    }
+  }, [value]);
+
+  const handleDateChange = (e) => {
+    // e.target.value is in YYYY-MM-DD format from input type="date"
+    onChange(e.target.value);
+  };
+
+  return (
+    <div className={styles.datePickerContainer}>
+      {label && (
+        <label className={styles.label}>
+          {label}
+          {required && <span className={styles.required}> *</span>}
+        </label>
+      )}
+      <div className={styles.datePickerWrapper}>
+        <input
+          ref={inputRef}
+          type="date"
+          value={value}
+          onChange={handleDateChange}
+          required={required}
+          className={styles.dateInput}
+        />
+        <div className={styles.displayValue}>
+          {displayValue || "dd/mm/yyyy"}
+        </div>
+      </div>
+    </div>
+  );
+}

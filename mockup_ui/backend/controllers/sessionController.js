@@ -129,6 +129,56 @@ const cancelSessionHandler = async (req, res, next) => {
   }
 };
 
+// Reschedule cancelled session
+const rescheduleSessionHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { start_time, end_time, location_type, location_details, notes } = req.body;
+
+    if (!start_time || !end_time) {
+      return res.status(400).json({ error: "start_time and end_time are required" });
+    }
+
+    // Get the original cancelled session
+    const originalSession = await db.getSessionById(id);
+    if (!originalSession) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (originalSession.status !== "cancelled") {
+      return res.status(400).json({ error: "Can only reschedule cancelled sessions" });
+    }
+
+    // Create new session with "rescheduled" status
+    const newSession = await db.createSession({
+      class_id: originalSession.class_id,
+      session_number: originalSession.session_number,
+      start_time,
+      end_time,
+      location_type: location_type || "offline",
+      location_details: location_details || "",
+      notes: notes || `Đổi lịch từ buổi học ngày ${new Date(originalSession.start_time).toLocaleDateString('vi-VN')}`,
+      status: "rescheduled",
+    });
+
+    res.json(newSession);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark session as completed
+const completeSessionHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const session = await db.completeSession(id);
+    res.json(session);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ===== Reschedule Poll Handlers =====
 
 // Create a reschedule poll
@@ -275,6 +325,8 @@ module.exports = {
   getTutorSessionsHandler,
   updateSessionHandler,
   cancelSessionHandler,
+  rescheduleSessionHandler,
+  completeSessionHandler,
   // Polls
   createPollHandler,
   getPollByIdHandler,

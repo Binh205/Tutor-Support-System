@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/Calendar.css";
 
-const Calendar = ({ sessions, onSessionClick, currentUser }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+const Calendar = ({
+  sessions,
+  onSessionClick,
+  currentDate: externalCurrentDate,
+  onMonthChange,
+}) => {
+  const [currentDate, setCurrentDate] = useState(
+    externalCurrentDate || new Date()
+  );
   const [calendarDays, setCalendarDays] = useState([]);
+
+  // Sync with external currentDate if provided
+  useEffect(() => {
+    if (externalCurrentDate) {
+      setCurrentDate(externalCurrentDate);
+    }
+  }, [externalCurrentDate]);
 
   useEffect(() => {
     generateCalendar();
@@ -43,19 +57,35 @@ const Calendar = ({ sessions, onSessionClick, currentUser }) => {
   };
 
   const handlePrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
     );
+    setCurrentDate(newDate);
+    if (onMonthChange) {
+      onMonthChange(newDate);
+    }
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
     );
+    setCurrentDate(newDate);
+    if (onMonthChange) {
+      onMonthChange(newDate);
+    }
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    const newDate = new Date();
+    setCurrentDate(newDate);
+    if (onMonthChange) {
+      onMonthChange(newDate);
+    }
   };
 
   const monthNames = [
@@ -80,9 +110,11 @@ const Calendar = ({ sessions, onSessionClick, currentUser }) => {
       case "scheduled":
         return "#4CAF50";
       case "cancelled":
-        return "#f44336";
+        return "#9E9E9E"; // Grey for cancelled
+      case "rescheduled":
+        return "#FF9800"; // Orange for rescheduled
       case "completed":
-        return "#9E9E9E";
+        return "#607D8B"; // Dark grey for completed
       default:
         return "#2196F3";
     }

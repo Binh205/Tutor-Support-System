@@ -750,6 +750,7 @@ function unregisterStudentFromClass(class_id, student_id) {
 // ===== Session helpers =====
 function createSession({
   class_id,
+  session_number,
   recurring_schedule_id,
   start_time,
   end_time,
@@ -759,12 +760,13 @@ function createSession({
   notes,
 }) {
   return new Promise((resolve, reject) => {
-    const stmt = `INSERT INTO sessions (class_id, recurring_schedule_id, start_time, end_time, location_type, location_details, status, notes)
-                  VALUES (?,?,?,?,?,?,?,?)`;
+    const stmt = `INSERT INTO sessions (class_id, session_number, recurring_schedule_id, start_time, end_time, location_type, location_details, status, notes)
+                  VALUES (?,?,?,?,?,?,?,?,?)`;
     db.run(
       stmt,
       [
         class_id,
+        session_number || null,
         recurring_schedule_id || null,
         start_time,
         end_time,
@@ -878,6 +880,19 @@ function cancelSession(id, cancellation_reason) {
     db.run(
       `UPDATE sessions SET status = 'cancelled', cancellation_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [cancellation_reason, id],
+      function (err) {
+        if (err) return reject(err);
+        getSessionById(id).then(resolve).catch(reject);
+      }
+    );
+  });
+}
+
+function completeSession(id) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `UPDATE sessions SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [id],
       function (err) {
         if (err) return reject(err);
         getSessionById(id).then(resolve).catch(reject);
@@ -1091,6 +1106,7 @@ module.exports = {
   getSessionsByTutorAndMonth,
   updateSession,
   cancelSession,
+  completeSession,
   // reschedule_polls
   createReschedulePoll,
   getPollById,
