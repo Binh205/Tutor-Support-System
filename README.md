@@ -6,7 +6,7 @@ Hệ thống quản lý dạy kèm một-một cho sinh viên và gia sư, hỗ 
 
 Tutor Support System là nền tảng web full-stack giúp quản lý hoạt động dạy kèm, bao gồm:
 
-- **Sinh viên**: Đăng ký lớp học, xem lịch học, tham gia poll đổi lịch, đánh giá buổi học
+- **Sinh viên**: Đăng ký lớp học, xem lịch học, đánh giá buổi học
 - **Gia sư**: Tạo lớp học, quản lý lịch rảnh, quản lý buổi học (hủy/đổi lịch), xem phản hồi từ sinh viên
 
 ## Công nghệ sử dụng
@@ -52,14 +52,12 @@ TutorSupportSystem/
 ### Dành cho Sinh viên
 - Đăng ký/hủy đăng ký lớp học kèm theo môn học và học kỳ
 - Xem lịch học theo tháng (calendar view)
-- Tham gia poll bỏ phiếu đổi lịch học
 - Đánh giá buổi học (rating 1-5 sao, có thể ẩn danh)
 
 ### Dành cho Gia sư
 - Tạo lớp học kèm và thiết lập lịch định kỳ
 - Quản lý lịch rảnh (free schedule)
 - Quản lý buổi học: hủy, đổi lịch, hoàn thành
-- Tạo poll đổi lịch cho sinh viên bỏ phiếu
 - Xem feedback từ sinh viên
 
 ### Tính năng hệ thống
@@ -89,8 +87,6 @@ TutorSupportSystem/
 - `POST /api/sessions/:id/cancel` - Hủy buổi học
 - `POST /api/sessions/:id/reschedule` - Đổi lịch
 - `POST /api/sessions/:id/complete` - Hoàn thành buổi học
-- `POST /api/sessions/polls` - Tạo poll đổi lịch
-- `POST /api/sessions/polls/:id/vote` - Bỏ phiếu
 
 ### Tutor
 - `POST /api/tutor/class` - Tạo lớp học
@@ -117,7 +113,7 @@ Hệ thống sử dụng SQLite với các bảng chính:
 - `class_registrations` - Đăng ký lớp học
 - `session_attendance` - Điểm danh
 - `feedbacks` - Đánh giá buổi học
-- `reschedule_polls` - Poll đổi lịch
+
 
 ## Chạy ứng dụng
 
