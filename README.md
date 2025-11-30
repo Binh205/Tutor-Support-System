@@ -166,7 +166,7 @@ JWT_SECRET=your_jwt_secret_key_here
 
 ## License
 
-Academic project - Đại học Khoa học Tự nhiên TP.HCM
+Academic project - Đại học Bách Khoa, Đại học Quốc gia TP.HCM
 
 ---
 
