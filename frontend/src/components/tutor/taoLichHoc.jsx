@@ -9,6 +9,7 @@ import {
   getClassesByTutorAPI,
   getTutorSchedulesAPI,
   createRecurringScheduleAPI,
+  deleteClassAPI,
 } from "../../services/api";
 import TimePicker from "../common/TimePicker";
 import styles from "../../styles/taoLichHoc.module.css";
@@ -297,6 +298,29 @@ export default function TaoLichHoc() {
     }
   };
 
+  const handleDeleteClass = async (classId, className) => {
+    // Confirm before deleting
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa lớp "${className}"?\n\nLưu ý: Việc này sẽ xóa tất cả lịch học và danh sách sinh viên đã đăng ký.`)) {
+      return;
+    }
+
+    try {
+      await deleteClassAPI(classId);
+      setMessage({ type: "success", text: "Xóa lớp học thành công!" });
+
+      // Reload classes and schedules
+      if (selectedSemester) {
+        loadClasses(selectedSemester.id);
+        loadExistingSchedules(selectedSemester.id);
+      }
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.error || err.message || "Xóa lớp học thất bại",
+      });
+    }
+  };
+
   const renderCalendar = () => {
     if (!freeSchedule) {
       return (
@@ -346,6 +370,15 @@ export default function TaoLichHoc() {
               <h4>
                 {cls.subject_code} - {cls.subject_name}
               </h4>
+              <button
+                className={styles.deleteBtn}
+                onClick={() =>
+                  handleDeleteClass(cls.id, `${cls.subject_code} - ${cls.subject_name}`)
+                }
+                title="Xóa lớp học"
+              >
+                <i className="fa-solid fa-trash"></i>
+              </button>
             </div>
             <div className={styles.classItemBody}>
               <p>

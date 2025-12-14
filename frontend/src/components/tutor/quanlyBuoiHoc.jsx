@@ -6,6 +6,8 @@ import "../../styles/quanlyBuoiHoc.css";
 
 export default function QuanLyBuoiHoc() {
   const [sessions, setSessions] = useState([]);
+  const [semesterSessions, setSemesterSessions] = useState([]);
+  const [currentSemester, setCurrentSemester] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,11 +17,59 @@ export default function QuanLyBuoiHoc() {
 
   useEffect(() => {
     const user = getCurrentUser();
+    console.log("Component mounted, current user:", user);
     if (user) {
       setCurrentUser(user);
+      fetchCurrentSemester();
       fetchSessions(user.id, currentDate);
+    } else {
+      console.error("No user found in localStorage!");
     }
   }, []);
+
+  const fetchCurrentSemester = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/schedules/current-semester");
+      if (response.ok) {
+        const semester = await response.json();
+        console.log("Current semester:", semester);
+        setCurrentSemester(semester);
+      } else {
+        console.error("Failed to fetch current semester:", response.status);
+      }
+    } catch (err) {
+      console.error("Error fetching current semester:", err);
+    }
+  };
+
+  const fetchSemesterSessions = async (tutorId, semesterId) => {
+    try {
+      console.log(`Fetching semester sessions for tutor ${tutorId}, semester ${semesterId}`);
+      const response = await fetch(
+        `http://localhost:5000/api/sessions/tutor/semester?tutorId=${tutorId}&semesterId=${semesterId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Semester sessions:", data);
+        setSemesterSessions(data);
+      } else {
+        console.error("Failed to fetch semester sessions:", response.status);
+      }
+    } catch (err) {
+      console.error("Error fetching semester sessions:", err);
+    }
+  };
+
+  useEffect(() => {
+    console.log("useEffect triggered - currentUser:", currentUser, "currentSemester:", currentSemester);
+    if (currentUser && currentSemester) {
+      console.log("Both available, fetching semester sessions...");
+      fetchSemesterSessions(currentUser.id, currentSemester.id);
+    } else {
+      if (!currentUser) console.warn("Waiting for currentUser...");
+      if (!currentSemester) console.warn("Waiting for currentSemester...");
+    }
+  }, [currentUser, currentSemester]);
 
   const fetchSessions = async (tutorId, date) => {
     try {
@@ -76,6 +126,9 @@ export default function QuanLyBuoiHoc() {
       // Refresh sessions after update
       if (currentUser) {
         await fetchSessions(currentUser.id, currentDate);
+        if (currentSemester) {
+          await fetchSemesterSessions(currentUser.id, currentSemester.id);
+        }
       }
 
       alert("Đã cập nhật buổi học thành công!");
@@ -105,6 +158,9 @@ export default function QuanLyBuoiHoc() {
       // Refresh sessions after cancellation
       if (currentUser) {
         await fetchSessions(currentUser.id, currentDate);
+        if (currentSemester) {
+          await fetchSemesterSessions(currentUser.id, currentSemester.id);
+        }
       }
 
       alert("Đã hủy buổi học thành công! Sinh viên sẽ được thông báo.");
@@ -141,6 +197,9 @@ export default function QuanLyBuoiHoc() {
       // Refresh sessions after rescheduling
       if (currentUser) {
         await fetchSessions(currentUser.id, currentDate);
+        if (currentSemester) {
+          await fetchSemesterSessions(currentUser.id, currentSemester.id);
+        }
       }
 
       alert("Đã đổi lịch buổi học thành công! Sinh viên sẽ được thông báo.");
@@ -169,6 +228,9 @@ export default function QuanLyBuoiHoc() {
       // Refresh sessions after completing
       if (currentUser) {
         await fetchSessions(currentUser.id, currentDate);
+        if (currentSemester) {
+          await fetchSemesterSessions(currentUser.id, currentSemester.id);
+        }
       }
 
       alert("Đã đánh dấu buổi học hoàn thành!");
@@ -215,23 +277,31 @@ export default function QuanLyBuoiHoc() {
       </div>
 
       <div className="stats-section">
-        <div className="stat-card">
-          <div className="stat-number">
-            {sessions.filter((s) => s.status === "scheduled" || s.status === "rescheduled").length}
+        {currentSemester && (
+          <div className="semester-info">
+            <strong>Học kỳ:</strong> {currentSemester.name}
+            {" • Tổng: " + semesterSessions.length + " buổi"}
           </div>
-          <div className="stat-label">Buổi học còn lại</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {sessions.filter((s) => s.status === "completed").length}
+        )}
+        <div className="stats-cards">
+          <div className="stat-card">
+            <div className="stat-number">
+              {semesterSessions.filter((s) => s.status === "scheduled" || s.status === "rescheduled").length}
+            </div>
+            <div className="stat-label">Buổi học còn lại</div>
           </div>
-          <div className="stat-label">Đã hoàn thành</div>
-        </div>
-        <div className="stat-card cancelled">
-          <div className="stat-number">
-            {sessions.filter((s) => s.status === "cancelled").length}
+          <div className="stat-card">
+            <div className="stat-number">
+              {semesterSessions.filter((s) => s.status === "completed").length}
+            </div>
+            <div className="stat-label">Đã hoàn thành</div>
           </div>
-          <div className="stat-label">Đã hủy</div>
+          <div className="stat-card cancelled">
+            <div className="stat-number">
+              {semesterSessions.filter((s) => s.status === "cancelled").length}
+            </div>
+            <div className="stat-label">Đã hủy</div>
+          </div>
         </div>
       </div>
 

@@ -25,6 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/tutor", schedulesRoutes);
+app.use("/api/schedules", schedulesRoutes); // Thêm route cho schedules
 app.use("/api/student", studentRoutes);
 app.use("/api/feedbacks", feedbackRoutes);
 

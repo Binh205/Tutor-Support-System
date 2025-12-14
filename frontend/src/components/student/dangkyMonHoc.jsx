@@ -5,6 +5,7 @@ import {
   getClassesBySubjectAPI,
   registerClassAPI,
   getStudentRegisteredClassesAPI,
+  unregisterClassAPI,
 } from "../../services/api";
 import "../../styles/dangkyMonHoc.css";
 
@@ -147,6 +148,40 @@ export default function DangKyMonHoc() {
         setMessage(error.message || "Đăng ký thất bại, vui lòng thử lại");
         setMessageType("error");
       }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleUnregister(classId, className) {
+    if (!user?.id) {
+      setMessage("Vui lòng đăng nhập");
+      setMessageType("error");
+      return;
+    }
+
+    // Confirm before deleting
+    if (!window.confirm(`Bạn có chắc chắn muốn hủy đăng ký lớp "${className}"?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await unregisterClassAPI(classId, user.id);
+      setMessage("Hủy đăng ký thành công!");
+      setMessageType("success");
+
+      // Refresh lists
+      setTimeout(() => {
+        if (selectedSubject) {
+          fetchClassesBySubject();
+        }
+        fetchRegisteredClasses();
+        setMessage("");
+      }, 1500);
+    } catch (error) {
+      setMessage(error.message || "Hủy đăng ký thất bại, vui lòng thử lại");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -415,6 +450,19 @@ export default function DangKyMonHoc() {
                     )}
                   </p>
                 </div>
+                <button
+                  className="delete-btn"
+                  onClick={() =>
+                    handleUnregister(
+                      classItem.class_id,
+                      `${classItem.subject_code} - ${classItem.subject_name}`
+                    )
+                  }
+                  disabled={loading}
+                  title="Hủy đăng ký"
+                >
+                  <i className="fa-solid fa-trash"></i>
+                </button>
               </div>
             ))}
           </div>

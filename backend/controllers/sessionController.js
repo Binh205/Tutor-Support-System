@@ -99,6 +99,50 @@ const getTutorSessionsHandler = async (req, res, next) => {
   }
 };
 
+// Get sessions by tutor and semester (for stats)
+const getTutorSessionsBySemesterHandler = async (req, res, next) => {
+  try {
+    const tutor_id = req.query.tutorId || req.query.tutor_id;
+    const semester_id = req.query.semesterId || req.query.semester_id;
+
+    if (!tutor_id || !semester_id) {
+      return res
+        .status(400)
+        .json({ error: "tutorId and semesterId are required" });
+    }
+
+    const sessions = await db.getSessionsByTutorAndSemester(
+      tutor_id,
+      parseInt(semester_id)
+    );
+    res.json(sessions);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get sessions by student and semester (for stats)
+const getStudentSessionsBySemesterHandler = async (req, res, next) => {
+  try {
+    const student_id = req.query.studentId || req.query.student_id;
+    const semester_id = req.query.semesterId || req.query.semester_id;
+
+    if (!student_id || !semester_id) {
+      return res
+        .status(400)
+        .json({ error: "studentId and semesterId are required" });
+    }
+
+    const sessions = await db.getSessionsByStudentAndSemester(
+      student_id,
+      parseInt(semester_id)
+    );
+    res.json(sessions);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Update session
 const updateSessionHandler = async (req, res, next) => {
   try {
@@ -323,6 +367,8 @@ module.exports = {
   getSessionByIdHandler,
   getStudentSessionsHandler,
   getTutorSessionsHandler,
+  getStudentSessionsBySemesterHandler,
+  getTutorSessionsBySemesterHandler,
   updateSessionHandler,
   cancelSessionHandler,
   rescheduleSessionHandler,

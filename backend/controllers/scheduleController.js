@@ -21,6 +21,18 @@ async function getSemesterByIdHandler(req, res, next) {
   }
 }
 
+async function getCurrentSemesterHandler(req, res, next) {
+  try {
+    const semester = await db.getCurrentSemester();
+    if (!semester) {
+      return res.status(404).json({ error: "No current semester found" });
+    }
+    res.json(semester);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Subject handlers
 async function getSubjectsBySemseterHandler(req, res, next) {
   try {
@@ -117,14 +129,46 @@ async function createRecurringScheduleHandler(req, res, next) {
     if (!class_id || day_of_week === undefined || !start_time || !end_time) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+
+    // Tính end_week tự động nếu không được cung cấp
+    let finalEndWeek = end_week;
+    if (!finalEndWeek) {
+      try {
+        const classInfo = await db.getClassById(class_id);
+        const semester = await db.getSemesterById(classInfo.semester_id);
+        if (semester && semester.start_date && semester.end_date) {
+          const semesterStart = new Date(semester.start_date);
+          const semesterEnd = new Date(semester.end_date);
+          const totalWeeks = Math.ceil((semesterEnd - semesterStart) / (7 * 24 * 60 * 60 * 1000));
+          finalEndWeek = totalWeeks;
+          console.log(`Auto-calculated end_week for ${semester.code}: ${finalEndWeek} weeks`);
+        } else {
+          finalEndWeek = 15; // Fallback
+        }
+      } catch (err) {
+        console.error("Error calculating end_week:", err);
+        finalEndWeek = 15; // Fallback
+      }
+    }
+
     const row = await db.createRecurringSchedule({
       class_id,
       day_of_week,
       start_time,
       end_time,
       start_week: start_week || 1,
-      end_week: end_week || 15,
+      end_week: finalEndWeek,
     });
+
+    // Tự động generate sessions từ recurring schedule
+    try {
+      await db.generateSessionsFromRecurringSchedule(row.id);
+      console.log(`Generated sessions for recurring schedule ${row.id}`);
+    } catch (sessionError) {
+      console.error("Error generating sessions:", sessionError);
+      // Không return error, chỉ log vì recurring schedule đã được tạo thành công
+    }
+
     res.status(201).json(row);
   } catch (err) {
     next(err);
@@ -200,6 +244,28 @@ async function getClassesByTutorHandler(req, res, next) {
   }
 }
 
+async function deleteClassHandler(req, res, next) {
+  try {
+    const class_id = req.params.classId;
+    if (!class_id) {
+      return res.status(400).json({ error: "classId required" });
+    }
+
+    // Check if class exists
+    const classExists = await db.getClassById(class_id);
+    if (!classExists) {
+      return res.status(404).json({ error: "Class not found" });
+    }
+
+    // Delete the class (cascade delete will handle recurring_schedules and class_registrations)
+    await db.deleteClass(class_id);
+
+    res.json({ success: true, message: "Class deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getTutorSchedulesHandler(req, res, next) {
   try {
     const tutor_id = req.query.tutorId || req.query.tutor_id;
@@ -218,6 +284,7 @@ async function getTutorSchedulesHandler(req, res, next) {
 module.exports = {
   getSemestersHandler,
   getSemesterByIdHandler,
+  getCurrentSemesterHandler,
   getSubjectsBySemseterHandler,
   createFreeSchedule,
   getFreeSchedule,
@@ -229,5 +296,6 @@ module.exports = {
   deleteRecurringScheduleHandler,
   createClassHandler,
   getClassesByTutorHandler,
+  deleteClassHandler,
   getTutorSchedulesHandler,
 };

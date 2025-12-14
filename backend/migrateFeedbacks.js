@@ -1,10 +1,10 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
-const DB_PATH = path.join(__dirname, 'data.sqlite');
+const DB_PATH = path.join(__dirname, "data.sqlite");
 const db = new sqlite3.Database(DB_PATH);
 
-console.log('Starting session_feedbacks table migration...');
+console.log("Starting session_feedbacks table migration...");
 
 db.serialize(() => {
   // Create session_feedbacks table
@@ -28,9 +28,9 @@ db.serialize(() => {
     )`,
     (err) => {
       if (err) {
-        console.error('Error creating session_feedbacks table:', err);
+        console.error("Error creating session_feedbacks table:", err);
       } else {
-        console.log('✓ Created session_feedbacks table');
+        console.log("✓ Created session_feedbacks table");
       }
     }
   );
@@ -39,15 +39,15 @@ db.serialize(() => {
   setTimeout(() => {
     db.all("PRAGMA table_info(session_feedbacks)", (err, columns) => {
       if (err) {
-        console.error('Error verifying table:', err);
+        console.error("Error verifying table:", err);
       } else {
-        console.log('\nTable columns:');
-        columns.forEach(col => {
+        console.log("\nTable columns:");
+        columns.forEach((col) => {
           console.log(`  - ${col.name} (${col.type})`);
         });
       }
       db.close();
-      console.log('\n✅ Migration completed!');
+      console.log("\n✅ Migration completed!");
     });
   }, 100);
 });

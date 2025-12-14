@@ -237,6 +237,16 @@ export const getClassesByTutorAPI = async (tutorId, semesterId) => {
   }
 };
 
+export const deleteClassAPI = async (classId) => {
+  try {
+    const response = await apiClient.delete(`/tutor/class/${classId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Delete class error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export const getTutorSchedulesAPI = async (tutorId, semesterId) => {
   try {
     const response = await apiClient.get(`/tutor/tutor-schedules`, {

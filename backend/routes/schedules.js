@@ -4,6 +4,7 @@ const controller = require("../controllers/scheduleController");
 
 // Semester routes
 router.get("/semesters", controller.getSemestersHandler);
+router.get("/current-semester", controller.getCurrentSemesterHandler);
 router.get("/semester/:id", controller.getSemesterByIdHandler);
 
 // Subject routes
@@ -15,6 +16,7 @@ router.get(
 // Class routes
 router.post("/class", controller.createClassHandler);
 router.get("/classes", controller.getClassesByTutorHandler);
+router.delete("/class/:classId", controller.deleteClassHandler);
 
 // Free schedule routes
 router.post("/schedule", controller.createFreeSchedule);

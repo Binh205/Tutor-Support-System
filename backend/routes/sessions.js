@@ -5,6 +5,8 @@ const {
   getSessionByIdHandler,
   getStudentSessionsHandler,
   getTutorSessionsHandler,
+  getStudentSessionsBySemesterHandler,
+  getTutorSessionsBySemesterHandler,
   updateSessionHandler,
   cancelSessionHandler,
   rescheduleSessionHandler,
@@ -51,6 +53,12 @@ router.get("/student/calendar", getStudentSessionsHandler);
 
 // GET /api/sessions/tutor/calendar - get tutor's sessions by month
 router.get("/tutor/calendar", getTutorSessionsHandler);
+
+// GET /api/sessions/student/semester - get student's sessions by semester (for stats)
+router.get("/student/semester", getStudentSessionsBySemesterHandler);
+
+// GET /api/sessions/tutor/semester - get tutor's sessions by semester (for stats)
+router.get("/tutor/semester", getTutorSessionsBySemesterHandler);
 
 // POST /api/sessions/:id/cancel - cancel session
 router.post("/:id/cancel", cancelSessionHandler);

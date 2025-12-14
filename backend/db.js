@@ -451,6 +451,26 @@ function getClassesBySubject(subject_id) {
   });
 }
 
+function deleteClass(class_id) {
+  return new Promise((resolve, reject) => {
+    // Delete class_registrations first
+    db.run("DELETE FROM class_registrations WHERE class_id = ?", [class_id], (err1) => {
+      if (err1) return reject(err1);
+
+      // Delete recurring_schedules
+      db.run("DELETE FROM recurring_schedules WHERE class_id = ?", [class_id], (err2) => {
+        if (err2) return reject(err2);
+
+        // Finally delete the class itself
+        db.run("DELETE FROM classes WHERE id = ?", [class_id], function (err3) {
+          if (err3) return reject(err3);
+          resolve({ success: true, changes: this.changes });
+        });
+      });
+    });
+  });
+}
+
 // Get existing recurring schedules for a tutor to check conflicts
 function getRecurringSchedulesByTutorAndSemester(tutor_id, semester_id) {
   return new Promise((resolve, reject) => {
@@ -748,6 +768,102 @@ function unregisterStudentFromClass(class_id, student_id) {
 }
 
 // ===== Session helpers =====
+
+// Hàm generate sessions từ recurring schedule
+async function generateSessionsFromRecurringSchedule(recurring_schedule_id) {
+  try {
+    // 1. Lấy thông tin recurring schedule
+    const recurringSchedule = await getRecurringScheduleById(recurring_schedule_id);
+    if (!recurringSchedule) {
+      throw new Error("Recurring schedule not found");
+    }
+
+    // 2. Lấy thông tin class để biết semester
+    const classInfo = await getClassById(recurringSchedule.class_id);
+    if (!classInfo) {
+      throw new Error("Class not found");
+    }
+
+    // 3. Lấy thông tin semester để biết start_date và end_date
+    const semester = await getSemesterById(classInfo.semester_id);
+    if (!semester || !semester.start_date || !semester.end_date) {
+      throw new Error("Semester not found or missing dates");
+    }
+
+    const semesterStart = new Date(semester.start_date);
+    const semesterEnd = new Date(semester.end_date);
+
+    // 4. Tính toán các ngày trong semester
+    const sessions = [];
+    let currentDate = new Date(semesterStart);
+    let weekNumber = 1;
+
+    // Di chuyển đến ngày đầu tiên khớp với day_of_week
+    while (currentDate.getDay() !== recurringSchedule.day_of_week) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // 5. Tính số tuần tối đa trong semester
+    const totalWeeks = Math.ceil((semesterEnd - semesterStart) / (7 * 24 * 60 * 60 * 1000));
+    const maxWeek = recurringSchedule.end_week || totalWeeks;
+
+    console.log(`Semester: ${semester.code}, Total weeks: ${totalWeeks}, Max week: ${maxWeek}`);
+
+    // 6. Tạo sessions cho mỗi tuần
+    while (currentDate <= semesterEnd && weekNumber <= maxWeek) {
+      // Chỉ tạo session nếu nằm trong khoảng start_week đến end_week
+      if (weekNumber >= (recurringSchedule.start_week || 1)) {
+        // Tạo datetime cho session
+        const sessionDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const start_time = `${sessionDate} ${recurringSchedule.start_time}`;
+        const end_time = `${sessionDate} ${recurringSchedule.end_time}`;
+
+        // Kiểm tra xem session đã tồn tại chưa (dựa trên class_id và ngày)
+        const existingSession = await new Promise((resolve, reject) => {
+          db.get(
+            `SELECT id FROM sessions
+             WHERE class_id = ? AND DATE(start_time) = DATE(?)
+             LIMIT 1`,
+            [recurringSchedule.class_id, start_time],
+            (err, row) => {
+              if (err) return reject(err);
+              resolve(row);
+            }
+          );
+        });
+
+        // Chỉ tạo session mới nếu chưa tồn tại
+        if (!existingSession) {
+          const session = await createSession({
+            class_id: recurringSchedule.class_id,
+            session_number: weekNumber,
+            recurring_schedule_id: recurring_schedule_id,
+            start_time: start_time,
+            end_time: end_time,
+            location_type: 'offline',
+            location_details: '',
+            status: 'scheduled',
+            notes: '',
+          });
+
+          sessions.push(session);
+        } else {
+          console.log(`Session already exists for ${sessionDate}, skipping...`);
+        }
+      }
+
+      // Di chuyển đến tuần tiếp theo (cùng ngày trong tuần)
+      currentDate.setDate(currentDate.getDate() + 7);
+      weekNumber++;
+    }
+
+    return sessions;
+  } catch (error) {
+    console.error("Error generating sessions:", error);
+    throw error;
+  }
+}
+
 function createSession({
   class_id,
   session_number,
@@ -849,6 +965,47 @@ function getSessionsByTutorAndMonth(tutor_id, year, month) {
          AND date(s.start_time) <= date(?)
        ORDER BY s.start_time`,
       [tutor_id, startDate, endDate],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows || []);
+      }
+    );
+  });
+}
+
+function getSessionsByTutorAndSemester(tutor_id, semester_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT s.*, c.subject_id, c.semester_id,
+              sub.code as subject_code, sub.name as subject_name
+       FROM sessions s
+       JOIN classes c ON s.class_id = c.id
+       JOIN subjects sub ON c.subject_id = sub.id
+       WHERE c.tutor_id = ? AND c.semester_id = ?
+       ORDER BY s.start_time`,
+      [tutor_id, semester_id],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows || []);
+      }
+    );
+  });
+}
+
+function getSessionsByStudentAndSemester(student_id, semester_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT s.*, c.subject_id, c.tutor_id, c.semester_id,
+              sub.code as subject_code, sub.name as subject_name,
+              u.name as tutor_name, u.username as tutor_username
+       FROM sessions s
+       JOIN classes c ON s.class_id = c.id
+       JOIN subjects sub ON c.subject_id = sub.id
+       JOIN users u ON c.tutor_id = u.id
+       JOIN class_registrations cr ON c.id = cr.class_id
+       WHERE cr.student_id = ? AND c.semester_id = ?
+       ORDER BY s.start_time`,
+      [student_id, semester_id],
       (err, rows) => {
         if (err) return reject(err);
         resolve(rows || []);
@@ -1188,6 +1345,7 @@ module.exports = {
   getClassById,
   getClassesByTutorAndSemester,
   getClassesBySubject,
+  deleteClass,
   // free_schedules
   createFreeSchedule,
   getFreeScheduleByTutorAndSemester,
@@ -1206,10 +1364,13 @@ module.exports = {
   getClassesForStudent,
   unregisterStudentFromClass,
   // sessions
+  generateSessionsFromRecurringSchedule,
   createSession,
   getSessionById,
   getSessionsByStudentAndMonth,
   getSessionsByTutorAndMonth,
+  getSessionsByStudentAndSemester,
+  getSessionsByTutorAndSemester,
   updateSession,
   cancelSession,
   completeSession,
